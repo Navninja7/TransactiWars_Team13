@@ -1,0 +1,54 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: transactiwar_db
+    restart: always
+    env_file:
+      - .env
+    command: >
+      --sql-mode=STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO
+      --max_connections=200
+      --innodb_lock_wait_timeout=10
+      --local-infile=0
+      --skip-symbolic-links
+    volumes:
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./sql/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql
+      - db_data:/var/lib/mysql
+    networks:
+      - twnet
+    expose:
+      - "3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    container_name: transactiwar_web
+    restart: always
+    ports:
+      - "8080:80"
+      - "8443:443"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./src:/var/www/html
+      - uploads_data:/var/www/html/uploads
+    networks:
+      - twnet
+    env_file:
+      - .env
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  twnet:
+    driver: bridge
+
+volumes:
+  db_data:
+  uploads_data:

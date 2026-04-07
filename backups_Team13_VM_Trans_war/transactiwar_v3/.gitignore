@@ -1,0 +1,17 @@
+# Environment — NEVER commit credentials
+.env
+
+# Uploaded profile images
+src/uploads/profiles/*
+!src/uploads/profiles/.gitkeep
+!src/uploads/profiles/.htaccess
+
+# Docker volumes
+db_data/
+uploads_data/
+
+# Editor/OS
+.DS_Store
+*.swp
+*.swo
+Thumbs.db
